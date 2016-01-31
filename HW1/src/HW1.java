@@ -64,8 +64,8 @@ class HW1 implements GLEventListener {
             int dx = rand.nextInt((6+6)+1) - 6;
             int dy = rand.nextInt((6+6)+1) - 6;
 
-            System.out.println(vx);
-            System.out.println(vy);
+            //System.out.println(vx);
+            //System.out.println(vy);
 
             if (vx  > ww) {
                 if (dx > 0) {
@@ -88,8 +88,8 @@ class HW1 implements GLEventListener {
                 }
             }
 
-            System.out.println("vx" + vx);
-            System.out.println("vy" + vy);
+            //System.out.println("vx" + vx);
+            //System.out.println("vy" + vy);
             vx += dx;
             vy += dy;
         }

@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="52727183-4609-487b-871b-455e46b160a2" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/HW1.java" afterPath="$PROJECT_DIR$/src/HW1.java" />
     </list>
     <ignored path="HW1.iws" />
@@ -28,8 +27,8 @@
       <file leaf-file-name="HW1.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/HW1.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="2.8394794">
-              <caret line="83" column="13" selection-start-line="83" selection-start-column="13" selection-end-line="83" selection-end-column="13" />
+            <state vertical-scroll-proportion="2.691974">
+              <caret line="79" column="35" selection-start-line="79" selection-start-column="35" selection-end-line="79" selection-end-column="35" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -533,8 +532,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/HW1.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="2.8394794">
-          <caret line="83" column="13" selection-start-line="83" selection-start-column="13" selection-end-line="83" selection-end-column="13" />
+        <state vertical-scroll-proportion="2.691974">
+          <caret line="79" column="35" selection-start-line="79" selection-start-column="35" selection-end-line="79" selection-end-column="35" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>

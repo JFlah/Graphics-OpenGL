@@ -77,7 +77,7 @@ class HW1 implements GLEventListener {
                     dx *= -1;
                 }
             }
-            if (vy  > wh-r) {
+            if (vy  > wh-r-(r/2)) {
                 if (dy > 0) {
                     dy *= -1;
                 }

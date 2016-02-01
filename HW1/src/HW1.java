@@ -67,22 +67,22 @@ class HW1 implements GLEventListener {
             //System.out.println(vx);
             //System.out.println(vy);
 
-            if (vx  > ww) {
+            if (vx  > ww-r) {
                 if (dx > 0) {
                     dx *= -1;
                 }
             }
-            if (vx < 30) {
+            if (vx < r) {
                 if (dx < 0) {
                     dx *= -1;
                 }
             }
-            if (vy  > wh) {
+            if (vy  > wh-r) {
                 if (dy > 0) {
                     dy *= -1;
                 }
             }
-            if (vy < 30) {
+            if (vy < r) {
                 if (dy < 0) {
                     dy *= -1;
                 }

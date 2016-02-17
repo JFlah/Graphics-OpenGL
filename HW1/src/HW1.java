@@ -1,7 +1,7 @@
 //
-// Draw a Square.
+// Draw Some Triangles.
 //
-// Draws a red square on a white background.
+// Draws a green triangle on a white background.
 //
 
 import com.jogamp.opengl.*;

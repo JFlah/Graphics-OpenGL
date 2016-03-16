@@ -5,6 +5,7 @@ import com.jogamp.opengl.util.*;
 import javax.swing.*;
 import java.awt.event.*;
 import java.awt.*;
+import java.util.ArrayList;
 
 class Painter implements GLEventListener, ActionListener {
 
@@ -14,6 +15,7 @@ class Painter implements GLEventListener, ActionListener {
     private Pen pen = null;  // current drawing pen
     private int ww = 600, wh = 500; // canvas width and height
     private float r=1,g=0,b=0;  // current drawing color
+    private ArrayList<ClipRectangle> recList = new ArrayList<>();
 
     // buttons must be instance variables so the action listeners can
     // access them
@@ -32,6 +34,8 @@ class Painter implements GLEventListener, ActionListener {
     // gl and glu are used to interface with OpenGL
     private GL2 gl;
     private GLU glu;
+
+
 
     // GLEventListener methods:  init, reshape, display, dispose
     public void init(GLAutoDrawable drawable) {

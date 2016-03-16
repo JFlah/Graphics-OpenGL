@@ -68,11 +68,14 @@ class Line {
     }
 
     // draw the line
-    public void draw(GL2 gl, int how){
+    public void draw(GL2 gl, int how, ClipRectangle clipRec) {
+        //clipRec.
+
         gl.glLogicOp(how);
         gl.glBegin(GL.GL_LINES);
         gl.glVertex2f(p1.x, p1.y);
         gl.glVertex2f(p2.x, p2.y);
+
         gl.glEnd();
         gl.glFlush();
     }
@@ -89,7 +92,23 @@ class FilledRectangle {
     }
 
     // draw the rectangle as a polygon
-    public void draw(GL2 gl, int how){
+    public void draw(GL2 gl, int how, ClipRectangle clipRec){
+        // clip it
+        if (clipRec!=null){
+            Point maxX = p1.x > p2.x ? p1 : p2;
+            Point minX = p1.x < p2.x ? p1 : p2;
+            Point maxY = p1.y > p2.y ? p1 : p2;
+            Point minY = p1.y < p2.y ? p1 : p2;
+
+            if (minX.x < clipRec.minX)
+                minX.x = clipRec.minX;
+            if (maxX.x > clipRec.maxX)
+                maxX.x = clipRec.maxX;
+            if (minY.y < clipRec.minY)
+                minY.y = clipRec.minY;
+            if (maxY.y > clipRec.maxY)
+                maxY.y = clipRec.maxY;
+        }
         gl.glPolygonMode(GL.GL_FRONT_AND_BACK, GL2.GL_FILL);
         gl.glLogicOp(how);
         gl.glBegin(GL2.GL_POLYGON);
@@ -113,7 +132,24 @@ class Rectangle {
     }
 
     // draw the rectangle as a polygon
-    public void draw(GL2 gl, int how){
+    public void draw(GL2 gl, int how, ClipRectangle clipRec){
+        // clip it
+        if (clipRec!=null){
+            Point maxX = p1.x > p2.x ? p1 : p2;
+            Point minX = p1.x < p2.x ? p1 : p2;
+            Point maxY = p1.y > p2.y ? p1 : p2;
+            Point minY = p1.y < p2.y ? p1 : p2;
+
+            if (minX.x < clipRec.minX)
+                minX.x=clipRec.minX;
+            if (maxX.x > clipRec.maxX)
+                maxX.x = clipRec.maxX;
+            if (minY.y < clipRec.minY)
+                minY.y = clipRec.minY;
+            if (maxY.y > clipRec.maxY)
+                maxY.y = clipRec.maxY;
+        }
+
         gl.glPolygonMode(GL.GL_FRONT_AND_BACK, GL2.GL_LINE);
         gl.glLogicOp(how);
         gl.glBegin(GL2.GL_POLYGON);
@@ -125,8 +161,38 @@ class Rectangle {
         gl.glFlush();
     }
 }
-// TODO
 class ClipRectangle {
+    // two points at opposite corners of a rectangle
+    Point p1;
+    Point p2;
+    int maxX, minX, maxY, minY;
 
+    ClipRectangle(Point p1, Point p2) {
+        this.p1 = p1;
+        this.p2 = p2;
+        maxX = Math.max(p1.x, p2.x); // right
+        maxY = Math.max(p1.y, p2.y); // bottom
+        minY = Math.min(p1.y, p2.y); // left
+        minX = Math.min(p1.x, p2.x); // left
+    }
+
+    // draw the rectangle as a polygon
+    public void draw(GL2 gl, int how, ClipRectangle clipRec) {
+
+        gl.glPolygonMode(GL.GL_FRONT_AND_BACK, GL2.GL_LINE);
+        gl.glLogicOp(how);
+        gl.glBegin(GL2.GL_POLYGON);
+        gl.glVertex2f(p1.x, p1.y);
+        gl.glVertex2f(p1.x, p2.y);
+        gl.glVertex2f(p2.x, p2.y);
+        gl.glVertex2f(p2.x, p1.y);
+        gl.glEnd();
+        gl.glFlush();
+
+//        if (!recList.isEmpty())
+//            for (ClipRectangle cr : recList) {
+//                System.out.println("clip: " + cr.p1.x);
+//            }
+    }
 }
 

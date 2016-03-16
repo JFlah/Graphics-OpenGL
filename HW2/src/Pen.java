@@ -7,6 +7,7 @@
    The code defines how each type of pen responds to mouse events.
 */
 import com.jogamp.opengl.*;
+
 import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +17,7 @@ abstract class Pen {
     protected int state;
     protected float r,g,b;
     protected GL2 gl;
+    protected static ClipRectangle clipRec;
 
     Pen(GL2 gl){
         this.gl = gl;
@@ -30,11 +32,69 @@ abstract class Pen {
     }
 }
 
-// TODO
 class ClipRectanglePen extends Pen {
+
+    Point p1,p2;
+    ClipRectangle rct;
 
     ClipRectanglePen(GL2 gl){
         super(gl);
+    }
+
+    public void mouseDown(MouseEvent e){
+        int xnow = e.getX();
+        int ynow = e.getY();
+        p1 = p2 = new Point(xnow,ynow);
+        rct = new ClipRectangle(p1,p2);
+        gl.glColor3f(1,1,1);
+        rct.draw(gl, GL2.GL_XOR, clipRec);
+    }
+
+    public void mouseUp(MouseEvent e){
+        // erase the last rectangle
+        rct.draw(gl, GL2.GL_XOR, clipRec);
+        // get the new corner point
+        int xnow = e.getX();
+        int ynow = e.getY();
+        p2 = new Point(xnow,ynow);
+        rct = new ClipRectangle(p1,p2);
+        // get unions
+        if (clipRec!=null) {
+
+            Point maxX = p1.x > p2.x ? p1 : p2;
+            Point minX = p1.x < p2.x ? p1 : p2;
+            Point maxY = p1.y > p2.y ? p1 : p2;
+            Point minY = p1.y < p2.y ? p1 : p2;
+
+            if (minX.x < clipRec.minX)
+                rct.minX = clipRec.minX;
+            if (maxX.x > clipRec.maxX)
+                rct.maxX = clipRec.maxX;
+            if (minY.y < clipRec.minY)
+                rct.minY = clipRec.minY;
+            if (maxY.y > clipRec.maxY)
+                rct.maxY = clipRec.maxY;
+        }
+        clipRec = rct;
+        gl.glColor3f(0,0,0);
+        // draw the new version permanently
+        rct.draw(gl, GL2.GL_COPY, clipRec);
+    }
+
+    public void mouseDragged(MouseEvent e){
+        // erase the last rectangle
+        rct.draw(gl, GL2.GL_XOR, clipRec);
+        // get the new corner point
+        int xnow = e.getX();
+        int ynow = e.getY();
+        p2 = new Point(xnow,ynow);
+        rct = new ClipRectangle(p1,p2);
+        // draw the new version
+        rct.draw(gl, GL2.GL_XOR, clipRec);
+    }
+
+    public ClipRectangle getRct() {
+        return rct;
     }
 
 }
@@ -53,12 +113,12 @@ class RectanglePen extends Pen {
         p1 = p2 = new Point(xnow,ynow);
         rct = new Rectangle(p1,p2);
         gl.glColor3f(1-r,1-g,1-b);
-        rct.draw(gl, GL2.GL_XOR);
+        rct.draw(gl, GL2.GL_XOR, clipRec);
     }
 
     public void mouseUp(MouseEvent e){
         // erase the last rectangle
-        rct.draw(gl, GL2.GL_XOR);
+        rct.draw(gl, GL2.GL_XOR, clipRec);
         // get the new corner point
         int xnow = e.getX();
         int ynow = e.getY();
@@ -66,19 +126,19 @@ class RectanglePen extends Pen {
         rct = new Rectangle(p1,p2);
         gl.glColor3f(r,g,b);
         // draw the new version permanently
-        rct.draw(gl, GL2.GL_COPY);
+        rct.draw(gl, GL2.GL_COPY, clipRec);
     }
 
     public void mouseDragged(MouseEvent e){
         // erase the last rectangle
-        rct.draw(gl, GL2.GL_XOR);
+        rct.draw(gl, GL2.GL_XOR, clipRec);
         // get the new corner point
         int xnow = e.getX();
         int ynow = e.getY();
         p2 = new Point(xnow,ynow);
         rct = new Rectangle(p1,p2);
         // draw the new version
-        rct.draw(gl, GL2.GL_XOR);
+        rct.draw(gl, GL2.GL_XOR, clipRec);
     }
 }
 
@@ -96,12 +156,12 @@ class FilledRectanglePen extends Pen {
         p1 = p2 = new Point(xnow,ynow);
         rct = new FilledRectangle(p1,p2);
         gl.glColor3f(1-r,1-g,1-b);
-        rct.draw(gl, GL2.GL_XOR);
+        rct.draw(gl, GL2.GL_XOR, clipRec);
     }
 
     public void mouseUp(MouseEvent e){
         // erase the last rectangle
-        rct.draw(gl, GL2.GL_XOR);
+        rct.draw(gl, GL2.GL_XOR, clipRec);
         // get the new corner point
         int xnow = e.getX();
         int ynow = e.getY();
@@ -109,19 +169,19 @@ class FilledRectanglePen extends Pen {
         rct = new FilledRectangle(p1,p2);
         gl.glColor3f(r,g,b);
         // draw the new version permanently
-        rct.draw(gl, GL2.GL_COPY);
+        rct.draw(gl, GL2.GL_COPY, clipRec);
     }
 
     public void mouseDragged(MouseEvent e){
         // erase the last rectangle
-        rct.draw(gl, GL2.GL_XOR);
+        rct.draw(gl, GL2.GL_XOR, clipRec);
         // get the new corner point
         int xnow = e.getX();
         int ynow = e.getY();
         p2 = new Point(xnow,ynow);
         rct = new FilledRectangle(p1,p2);
         // draw the new version
-        rct.draw(gl, GL2.GL_XOR);
+        rct.draw(gl, GL2.GL_XOR, clipRec);
     }
 }
 
@@ -138,12 +198,12 @@ class LinePen extends Pen {
         p1 = p2 = new Point(xnow,ynow);
         line = new Line(p1,p2);
         gl.glColor3f(1-r,1-g,1-b);
-        line.draw(gl, GL2.GL_XOR);
+        line.draw(gl, GL2.GL_XOR, clipRec);
     }
 
     public void mouseUp(MouseEvent e){
         // erase the last line
-        line.draw(gl, GL2.GL_XOR);
+        line.draw(gl, GL2.GL_XOR, clipRec);
         // get the new endpoint
         int xnow = e.getX();
         int ynow = e.getY();
@@ -151,19 +211,19 @@ class LinePen extends Pen {
         line = new Line(p1,p2);
         gl.glColor3f(r,g,b);
         // draw the new version permanently
-        line.draw(gl, GL2.GL_COPY);
+        line.draw(gl, GL2.GL_COPY, clipRec);
     }
 
     public void mouseDragged(MouseEvent e){
         // erase the last line
-        line.draw(gl, GL2.GL_XOR);
+        line.draw(gl, GL2.GL_XOR, clipRec);
         // get the new endpoint
         int xnow = e.getX();
         int ynow = e.getY();
         p2 = new Point(xnow,ynow);
         line = new Line(p1,p2);
         // draw the new version
-        line.draw(gl, GL2.GL_XOR);
+        line.draw(gl, GL2.GL_XOR, clipRec);
     }
 }
 

@@ -13,13 +13,26 @@ public class Obj {
     public float yMin, yMax;
     public float zMin, zMax;
 
+    public List<float[]> vertNormals;
+    public List<int[]> faceNormals;
+
     public Obj() {
         this.faces = new ArrayList<>();
         this.vertices = new ArrayList<>();
+        this.vertNormals = new ArrayList<>();
+        this.faceNormals = new ArrayList<>();
     }
 
     public void newFace(int[] theFaces) {
         this.faces.add(theFaces);
+    }
+
+    public void addVertNormal3f(float xn, float yn, float zn){
+        this.vertNormals.add(new float[]{xn,yn,zn});
+    }
+
+    public void addFaceNormal(int[] n){
+        this.faceNormals.add(n);
     }
 
     public void newVector(float[] theVectors) {
@@ -35,11 +48,20 @@ public class Obj {
         this.vertices.add(theVectors);
     }
 
-    public void draw(GL2 gl) {
-        gl.glBegin(GL2.GL_POLYGON);
-        for (int[] face : faces) {
-            for (int i = 0; i < face.length; i++) {
-                gl.glVertex3fv(this.vertices.get(face[i]-1), 0);
+    public void draw(GL2 gl){
+        if (this.faces.get(0).length==4) gl.glBegin(GL2.GL_QUADS);
+        else gl.glBegin(GL2.GL_TRIANGLES);
+        for(int i=0; i<this.faces.size();i++){
+            int[] face = this.faces.get(i);
+            int[] norm = null;
+            if (!faceNormals.isEmpty()) norm=this.faceNormals.get(i);
+            for (int j = 0; j < face.length; j++) {
+                int vecNum = face[j]-1;
+                if (!vertNormals.isEmpty()){
+                    float[] vecNorm = this.vertNormals.get((norm==null) ? vecNum : norm[j]-1);
+                    gl.glNormal3fv(vecNorm,0);
+                }
+                gl.glVertex3fv(this.vertices.get(vecNum), 0);
             }
         }
         gl.glEnd();

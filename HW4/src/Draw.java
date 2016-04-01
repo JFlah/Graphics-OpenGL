@@ -2,7 +2,6 @@ import com.jogamp.opengl.*;
 import com.jogamp.opengl.awt.GLCanvas;
 import com.jogamp.opengl.glu.GLU;
 import com.jogamp.opengl.util.FPSAnimator;
-import com.jogamp.opengl.util.gl2.GLUT;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -10,54 +9,51 @@ import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.io.File;
 import java.io.FileNotFoundException;
 
 /**
  * Created by Jack on 3/8/2016.
  */
-public class Draw implements GLEventListener, ActionListener, ChangeListener {
+public class Draw implements GLEventListener, ActionListener, ChangeListener, KeyListener {
     // TODO: update to point at folder with .obj files
     public static final String PATH = "src/";
 
 
     private JSlider ambientSlider, diffuseSlider,
-            specularSlider, shininessSlider, divisionsSlider;
-    private JRadioButton light0Button, light1Button;
-    private JLabel divisionsLabel;
+            specularSlider, shininessSlider;//, divisionsSlider;
+    private JRadioButton light0Button, light1Button, smoothButton;
+    //private JLabel divisionsLabel;
 
     int subdivisions = 10;
-    boolean wire = false;
     boolean light0On = true;
     boolean light1On = true;
+    boolean smooth = true;
 
     // gl and glu are used to interface with OpenGL
     GL2 gl;
     GLU glu;
-    GLUT glut;
 
     private float lightAmbient[] = {.3f, .3f, .3f, 1f};
     private float lightDiffuse[] = {.7f, .7f, .7f, .7f};
     private float lightSpecular[] = {1f, 1f, 1f, 1f};
-    private float light0Position[] = {20f, 0f, -5f, 1f};
-    private float light1Position[] = {0f, 10f, 10f, 1f};
-    private float lightOff[] = {0,0,0,1};
+    private float light0Position[] = {0f, 7f, -5f, 1f};
+    private float light1Position[] = {-5f, 1f, 10f, 1f};
 
     private float floorBlack[] = {0f, 0f, 0f};
     private float floorWhite[] = {1f, 1f, 1f};
+    private float sphere1Ambient[] = {0, 0.3f, 0};
+    private float sphere1Diffuse[] = {0, 0.9f, 0};
 
     private float backAmbient[] = {0f, 0.3f, 0.3f};
     private float backDiffuse[] = {0f, 0.9f, 0.9f};
-    private float torusAmbient[] = {0.3f, 0, 0};
-    private float torusDiffuse[] = {0.9f, 0, 0};
-    private float sphere1Ambient[] = {0, 0.3f, 0};
-    private float sphere1Diffuse[] = {0, 0.9f, 0};
-    private float sphere2Ambient[] = {0, 0, 0.3f};
-    private float sphere2Diffuse[] = {0, 0, 0.9f};
+
+    private float phi, rotation;
 
     private float materialSpecular[] = {0.9f, 0.9f, 0.9f};
     private int materialShininess = 32;
-
 
     private GLCanvas canvas;
 
@@ -65,12 +61,10 @@ public class Draw implements GLEventListener, ActionListener, ChangeListener {
 
     private float theta;
 
-    public static final float colorVals[][] = new float[][] {
-            {1f,0f,0f}, {0f, 1f, 0f}, {0f, 0f, 1f},
-            {0f, 1f, 1f}, {1f, 0f, 1f}, {1f, 1f,0f},
-    };
-
     public Draw() {
+        this.theta = 0;
+        this.phi = (float) Math.PI/2;
+
         try {
             Read reader = new Read();
             File file1 = new File(PATH+"cube.obj");
@@ -93,6 +87,7 @@ public class Draw implements GLEventListener, ActionListener, ChangeListener {
         frame.add(canvas);
         frame.setVisible(true);
         this.canvas.addGLEventListener(this);
+        this.canvas.addKeyListener(this);
 
         JFrame sliderFrame = new JFrame("Modify Attributes");
         sliderFrame.setLayout(new GridLayout(6,1));
@@ -107,6 +102,9 @@ public class Draw implements GLEventListener, ActionListener, ChangeListener {
         light1Button = new JRadioButton("Light 1",true);
         light1Button.addActionListener(this);
         row0.add(light1Button);
+        smoothButton = new JRadioButton("Smooth",true);
+        smoothButton.addActionListener(this);
+        row0.add(smoothButton);
         sliderFrame.add(row0);
 
         JPanel row1 = new JPanel(new BorderLayout());
@@ -129,18 +127,10 @@ public class Draw implements GLEventListener, ActionListener, ChangeListener {
         shininessSlider.setValue(30);
         sliderFrame.add(row4);
 
-        JPanel row5 = new JPanel(new BorderLayout());
-        divisionsSlider = newSlider(row5, 10, 100, 20, "Divisions");
-        divisionsLabel = new JLabel(""+subdivisions);
-        divisionsSlider.setValue(subdivisions);
-        row5.add(divisionsLabel, BorderLayout.EAST);
-        sliderFrame.add(row5);
-
         frame.setVisible(true);
         sliderFrame.setVisible(true);
 
         FPSAnimator animator = new FPSAnimator(canvas, 60);
-
 
         animator.start();
     }
@@ -149,7 +139,6 @@ public class Draw implements GLEventListener, ActionListener, ChangeListener {
     public void init(GLAutoDrawable drawable) {
         gl = drawable.getGL().getGL2();
         glu = new GLU();
-        gl.glShadeModel(GL2.GL_FLAT);
         gl.glClearColor(.9f, .9f, .9f, 1f);
         glu.gluLookAt(0, 0, 0, 0, 0, -1, 0, 1, 0);
 
@@ -161,6 +150,8 @@ public class Draw implements GLEventListener, ActionListener, ChangeListener {
         gl.glLightfv(GL2.GL_LIGHT0,  GL2.GL_POSITION, light0Position, 0);
         gl.glEnable(GL2.GL_LIGHT1);
         gl.glLightfv(GL2.GL_LIGHT1,  GL2.GL_POSITION, light1Position, 0);
+
+        gl.glEnable(GL2.GL_NORMALIZE);
     }
 
     @Override
@@ -179,6 +170,8 @@ public class Draw implements GLEventListener, ActionListener, ChangeListener {
             gl.glEnable(GL2.GL_LIGHT1);
         else
             gl.glDisable(GL2.GL_LIGHT1);
+        if (smooth) gl.glShadeModel(GL2.GL_SMOOTH);
+        else gl.glShadeModel(GL2.GL_FLAT);
 
         for(int light=GL2.GL_LIGHT0; light<=GL2.GL_LIGHT1; light++){
             gl.glLightfv(light,  GL2.GL_AMBIENT, lightAmbient, 0);
@@ -189,8 +182,13 @@ public class Draw implements GLEventListener, ActionListener, ChangeListener {
         gl.glMatrixMode(GL2.GL_MODELVIEW);
         gl.glLoadIdentity();
 
+        float xDir = (float) (Math.cos(theta) * Math.cos(phi));
+        float yDir = (float) Math.sin(theta);
+        float zDir = -1 * (float) (Math.cos(theta) * Math.sin(phi));
+        glu.gluLookAt(0, 2, 0, xDir, yDir + 2, zDir, 0, 1, 0); // view transformation
+        //System.out.println("th: " + theta + " yd: " + yDir);
 
-
+        gl.glPushMatrix();
         gl.glPolygonMode(GL2.GL_FRONT_AND_BACK, GL2.GL_FILL);
         gl.glBegin(GL2.GL_QUADS);
 
@@ -200,8 +198,16 @@ public class Draw implements GLEventListener, ActionListener, ChangeListener {
         for (int i = -40; i < 40; i++) {
             for (int k = -40; k < 40; k++) {
 
-                if ((i + k) % 2 == 0) gl.glMaterialfv(GL2.GL_FRONT, GL2.GL_AMBIENT, floorWhite, 0); //gl.glColor3f(1, 1, 1);
-                else gl.glMaterialfv(GL2.GL_FRONT, GL2.GL_AMBIENT, floorBlack, 0); //gl.glColor3f(0, 0, 0);
+                if ((i + k) % 2 == 0) {
+                    gl.glMaterialfv(GL2.GL_FRONT, GL2.GL_AMBIENT, floorWhite, 0);
+                    gl.glMaterialfv(GL2.GL_FRONT, GL2.GL_DIFFUSE, floorWhite, 0);
+                    gl.glMaterialfv(GL2.GL_FRONT, GL2.GL_SPECULAR, floorWhite, 0);
+                }
+                else {
+                    gl.glMaterialfv(GL2.GL_FRONT, GL2.GL_AMBIENT, floorBlack, 0);
+                    gl.glMaterialfv(GL2.GL_FRONT, GL2.GL_DIFFUSE, floorBlack, 0);
+                    gl.glMaterialfv(GL2.GL_FRONT, GL2.GL_SPECULAR, floorBlack, 0);
+                }
                 gl.glVertex3f(i, -1, k);
                 gl.glVertex3f(i + 1, -1, k);
                 gl.glVertex3f(i + 1, -1, k + 1);
@@ -209,17 +215,18 @@ public class Draw implements GLEventListener, ActionListener, ChangeListener {
             }
         }
         gl.glEnd();
+        gl.glPopMatrix();
+
 
         for (int i = 0; i < 4; i++) { // x
             for (int j = 0; j < 2; j++) { // y
                 for (int k = -5; k < 5; k++) { // z
-                    Obj obj = Math.abs(k+j)%2==0 ? obj1 : obj2; // randomize teapot or lamp
+                    Obj obj = Math.abs(k+j)%2==0 ? obj1 : obj2; // randomize teapot or cube
                     gl.glPushMatrix();
                     gl.glTranslatef(4*i - 5f, 4*j, 4*k);
                     float scale = 1/(obj.xMax-obj.xMin); // for vertex size disparities
                     gl.glScalef(scale, scale, scale);
-                    gl.glRotatef(j==0 ? 0 : theta, 0, 1, 0); // rotate by theta around y axis
-//                    gl.glColor3fv(colorVals[i], 0);
+                    gl.glRotatef(j==0 ? 0 : rotation, 0, 1, 0); // rotate by theta around y axis
 
                     gl.glMaterialfv(GL2.GL_FRONT, GL2.GL_AMBIENT, sphere1Ambient, 0);
                     gl.glMaterialfv(GL2.GL_FRONT, GL2.GL_DIFFUSE, sphere1Diffuse, 0);
@@ -231,7 +238,7 @@ public class Draw implements GLEventListener, ActionListener, ChangeListener {
                 }
             }
         }
-        theta+=3;
+        rotation+=3;
     }
 
     private void drawObj(Obj obj) {
@@ -243,7 +250,6 @@ public class Draw implements GLEventListener, ActionListener, ChangeListener {
 
         gl.glDisable(GL2.GL_POLYGON_OFFSET_FILL);
 
-        //gl.glColor3f(0, 0, 0);  // use black for the wire frame
         gl.glPolygonMode(GL2.GL_FRONT_AND_BACK, GL2.GL_LINE);
         // draw the object again
         obj.draw(gl);
@@ -285,6 +291,8 @@ public class Draw implements GLEventListener, ActionListener, ChangeListener {
             light0On = !light0On;
         else if (event.getSource() == light1Button) {
             light1On = !light1On;
+        } else if (event.getSource() == smoothButton){
+            smooth = !smooth;
         }
     }
 
@@ -304,9 +312,36 @@ public class Draw implements GLEventListener, ActionListener, ChangeListener {
         if (e.getSource() == shininessSlider) {
             materialShininess=shininessSlider.getValue();
         }
-        else if (e.getSource() == divisionsSlider) {
-            subdivisions = divisionsSlider.getValue();
-            divisionsLabel.setText(String.format( "%5.0f     ", new Float(subdivisions)));
+//        else if (e.getSource() == divisionsSlider) {
+//            subdivisions = divisionsSlider.getValue();
+//            divisionsLabel.setText(String.format( "%5.0f     ", new Float(subdivisions)));
+//        }
+    }
+
+    @Override
+    public void keyReleased(KeyEvent e) {
+    }
+
+    @Override
+    public void keyPressed(KeyEvent e) {
+        char key = e.getKeyChar();
+        switch (key) {
+            case 'a':
+                this.phi += 0.1;
+                break;
+            case 'd':
+                this.phi -= 0.1;
+                break;
+            case 'w':
+                this.theta += 0.1;
+                break;
+            case 's':
+                this.theta -= 0.1;
+                break;
         }
+    }
+
+    @Override
+    public void keyTyped(KeyEvent e) {
     }
 }

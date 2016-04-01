@@ -24,14 +24,27 @@ public class Read {
                         float[] vec = { x, y, z };
                         object.newVector(vec);
                         break;
+                    case "vn":
+                        float xn = Float.parseFloat(tokens[1]);
+                        float yn = Float.parseFloat(tokens[2]);
+                        float zn = Float.parseFloat(tokens[3]);
+                        object.addVertNormal3f(xn, yn, zn);
+                        break;
                     case "f":
-                        int[] faces = new int[tokens.length-1];
+                        int[] faceVerts = new int[tokens.length-1];
+                        int[] faceNorms = null;
                         for (int i = 1; i < tokens.length; i++) {
-                            String vS = tokens[i];
-                            String v = vS.split("/+")[0];
-                            faces[i - 1] = Integer.parseInt(v);
+                            String[] faceToks = tokens[i].split("/");
+                            String vertStr = faceToks[0];
+                            faceVerts[i-1] = Integer.parseInt(vertStr);
+                            if (faceToks.length==3) {
+                                if (faceNorms==null) faceNorms = new int[tokens.length-1];
+                                String normStr = faceToks[2];
+                                faceNorms[i-1]=Integer.parseInt(normStr);
+                            }
                         }
-                        object.newFace(faces);
+                        object.newFace(faceVerts);
+                        if (faceNorms!=null) object.addFaceNormal(faceVerts);
                         break;
                 }
             }
